@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
 namespace Player {
@@ -5,12 +7,30 @@ namespace Player {
         private CharacterController _controller;
         private Vector3 _velocity;
         private bool _isGrounded;
-        private bool _crouches;
+
+        private bool CanJump => _isGrounded;
+        private bool CanCrouch => _isGrounded && !_isDuringCrouchAnimation;
 
         public GameObject player;
-        public float speed = 5f;
+        
+        [Header("Movement parameters")]
+        public float walkSpeed = 50f;
+        public float sprintSpeed = 7f;
+        public float crouchSpeed = 2f;
+        private bool _isSprinting = false;
+
+        [Header("Jump parameters")]
         public float gravity = -9.8f;
         public float jumpHeight = 1f;
+
+        [Header("Crouch parameters")] 
+        [SerializeField] private float crouchingHeight = 0.5f;
+        [SerializeField] private float standingHeight = 2f;
+        [SerializeField] private float timeToCrouch = 0.25f;
+        [SerializeField] private Vector3 crouchingCenter = new(0, 0.5f, 0);
+        [SerializeField] private Vector3 standingCenter = Vector3.zero;
+        private bool _isCrouching = false;
+        private bool _isDuringCrouchAnimation = false;
 
         void Start() {
             _controller = GetComponent<CharacterController>();
@@ -31,9 +51,12 @@ namespace Player {
                 direction: TranslateHorizontal(input)
             );
 
-            var move = moveDirection * (speed * Time.deltaTime);
+            var move = moveDirection * (Speed * Time.deltaTime);
             _controller.Move(move);
         }
+
+        private float Speed =>
+            _isCrouching ? crouchSpeed : walkSpeed;
 
         private static Vector3 TranslateHorizontal(Vector2 input) => new() {
             x = input.x,
@@ -53,17 +76,46 @@ namespace Player {
 
 
         public void ProcessJump() {
-            if (_isGrounded) {
+            if (CanJump) {
                 _velocity.y = Mathf.Sqrt(jumpHeight * -3f * gravity);
             }
         }
 
 
         public void ProcessCrouch() {
-            var vector = new Vector3(0, 0.7f, 0);
-            
-            player.transform.localScale = _crouches ? vector : -vector;
-            _crouches = !_crouches;
+            if (CanCrouch) {
+                StartCoroutine(CrouchStand());
+            }
         }
+
+        private IEnumerator CrouchStand() {
+            _isDuringCrouchAnimation = true;
+
+            float timeElapsed = 0f;
+            var (targetHeight, targetCenter) = TargetCrouchParameters();
+            var (currentHeight, currentCenter) = CurrentCrouchParameters();
+
+            while (timeElapsed < timeToCrouch) {
+                float time = timeElapsed / timeToCrouch;
+                _controller.height = Mathf.Lerp(currentHeight, targetHeight, time);
+                _controller.center = Vector3.Lerp(currentCenter, targetCenter, time);
+                timeElapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            _controller.height = targetHeight;
+            _controller.center = targetCenter;
+
+            _isCrouching = !_isCrouching;
+            _isDuringCrouchAnimation = false;
+        }
+
+        private (float, Vector3) TargetCrouchParameters() =>
+            _isCrouching 
+                ? (standingHeight, standingCenter) 
+                : (crouchingHeight, crouchingCenter);
+
+        private (float, Vector3) CurrentCrouchParameters() => 
+            (_controller.height, _controller.center);
     }
 }
