@@ -96,7 +96,6 @@ namespace Player {
         
         private void ProcessHeadbob() {
             if (_isGrounded && IsMoving) {
-                Debug.Log("du[pa");
                 timer += Time.deltaTime * BobSpeed;
                 var cameraTransform = playerCamera.transform;
                 
