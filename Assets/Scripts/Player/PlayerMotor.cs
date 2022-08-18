@@ -56,7 +56,8 @@ namespace Player {
         }
 
         private float Speed =>
-            _isCrouching ? crouchSpeed : walkSpeed;
+            _isCrouching ? crouchSpeed 
+                : _isSprinting ? sprintSpeed : walkSpeed;
 
         private static Vector3 TranslateHorizontal(Vector2 input) => new() {
             x = input.x,
@@ -81,6 +82,11 @@ namespace Player {
             }
         }
 
+
+        public void ProcessSprint() {
+            _isSprinting = !_isSprinting;
+        }
+        
 
         public void ProcessCrouch() {
             if (CanCrouch) {

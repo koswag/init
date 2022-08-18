@@ -17,6 +17,7 @@ namespace Player {
             _onFoot = _playerInput.OnFoot;
             _onFoot.Jump.performed += _ => _motor.ProcessJump();
             _onFoot.Crouch.performed += _ => _motor.ProcessCrouch();
+            _onFoot.Sprint.performed += _ => _motor.ProcessSprint();
 
             _motor = GetComponent<PlayerMotor>();
             _look = GetComponent<PlayerLook>();
