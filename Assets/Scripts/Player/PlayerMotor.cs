@@ -7,11 +7,16 @@ namespace Player {
         private CharacterController _controller;
         private Vector3 _velocity;
         private bool _isGrounded;
+        private Vector3 _movingDirection;
 
         private bool CanJump => _isGrounded;
         private bool CanCrouch => _isGrounded && !_isDuringCrouchAnimation;
+        private bool IsMoving => Mathf.Abs(_movingDirection.x) > 0.1f || Mathf.Abs(_movingDirection.z) > 0.1f;
+        private float BobSpeed => _isCrouching ? crouchBobSpeed : _isSprinting ? sprintBobSpeed : walkBobSpeed;
+        private float BobAmount => _isCrouching ? crouchBobAmount : _isSprinting ? sprintBobAmount : walkBobAmount;
 
         public GameObject player;
+        public Camera playerCamera;
         
         [Header("Movement parameters")]
         public float walkSpeed = 50f;
@@ -32,8 +37,20 @@ namespace Player {
         private bool _isCrouching = false;
         private bool _isDuringCrouchAnimation = false;
 
+        [Header("Headbob parameters")] 
+        [SerializeField] private float walkBobSpeed = 14f;
+        [SerializeField] private float walkBobAmount = 0.05f;
+        [SerializeField] private float sprintBobSpeed = 18f;
+        [SerializeField] private float sprintBobAmount = 0.1f;
+        [SerializeField] private float crouchBobSpeed = 8f;
+        [SerializeField] private float crouchBobAmount = 0.025f;
+        private float _defaultYPos = 0;
+        private float timer;
+
         void Start() {
             _controller = GetComponent<CharacterController>();
+            _defaultYPos = playerCamera.transform.localPosition.y;
+            _movingDirection = Vector3.zero;
         }
 
         void Update() {
@@ -43,15 +60,16 @@ namespace Player {
         public void ProcessMove(Vector2 input) {
             ProcessInput(input);
             ProcessGravity();
+            ProcessHeadbob();
         }
 
 
         private void ProcessInput(Vector2 input) {
-            var moveDirection = transform.TransformDirection(
+            _movingDirection = transform.TransformDirection(
                 direction: TranslateHorizontal(input)
             );
 
-            var move = moveDirection * (Speed * Time.deltaTime);
+            var move = _movingDirection * (Speed * Time.deltaTime);
             _controller.Move(move);
         }
 
@@ -73,6 +91,21 @@ namespace Player {
 
             _velocity.y += gravity * Time.deltaTime;
             _controller.Move(_velocity * Time.deltaTime);
+        }
+
+        
+        private void ProcessHeadbob() {
+            if (_isGrounded && IsMoving) {
+                Debug.Log("du[pa");
+                timer += Time.deltaTime * BobSpeed;
+                var cameraTransform = playerCamera.transform;
+                
+                cameraTransform.localPosition = new(
+                    cameraTransform.localPosition.x,
+                    _defaultYPos + Mathf.Sin(timer) * BobAmount,
+                    cameraTransform.localPosition.z
+                );
+            }
         }
 
 

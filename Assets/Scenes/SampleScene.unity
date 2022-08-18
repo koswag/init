@@ -3185,9 +3185,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 2110245227666839533}
+  playerCamera: {fileID: 963194227}
   walkSpeed: 5
-  sprintSpeed: 5
-  crouchSpeed: 1.5
+  sprintSpeed: 8
+  crouchSpeed: 2.5
   gravity: -9.8
   jumpHeight: 1
   crouchingHeight: 1
@@ -3195,6 +3196,12 @@ MonoBehaviour:
   timeToCrouch: 0.25
   crouchingCenter: {x: 0, y: 0.5, z: 0}
   standingCenter: {x: 0, y: 0, z: 0}
+  walkBobSpeed: 14
+  walkBobAmount: 0.05
+  sprintBobSpeed: 18
+  sprintBobAmount: 0.1
+  crouchBobSpeed: 8
+  crouchBobAmount: 0.025
 --- !u!4 &2110245227666839539 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2110245227608363696, guid: 4fefdfb2d1219a342be2bb0e68b4c541, type: 3}
